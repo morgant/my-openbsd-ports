@@ -2,7 +2,7 @@
 
 COMMENT =	Macintosh-like virtual window manager
 DISTNAME =	mlvwm091
-PKGNAME =	mlvwm-0.91
+PKGNAME =	mlvwm-0.9.1
 CATEGORIES =	x11
 
 HOMEPAGE =	http://www2u.biglobe.ne.jp/~y-miyata/mlvwm.html
