@@ -11,7 +11,7 @@ MAINTAINER =	Morgan Aldridge <morgant@makkintosshu.com>
 # Freeware
 PERMIT_PACKAGE =	Yes
 
-WANTLIB =		X11 Xau Xdmcp Xext Xpm c
+WANTLIB +=		X11 Xau Xdmcp Xext Xpm c
 MASTER_SITES =		http://www2u.biglobe.ne.jp/~y-miyata/mlvwm/
 
 BUILD_DEPENDS =		devel/imake
