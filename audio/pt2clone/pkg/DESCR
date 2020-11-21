@@ -1,0 +1,5 @@
+A portable ProTracker 2 (v2.3D) clone written in C using SDL 2.
+
+This clone is meant for computers with a modern GPU and CPU (from about
+2008 or later recommended). It's also designed for 60Hz monitor refresh
+rates, so it can act choppy if you're below/above 60Hz.

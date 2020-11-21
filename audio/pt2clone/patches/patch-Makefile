@@ -1,0 +1,16 @@
+$OpenBSD$
+
+Index: Makefile
+--- Makefile.orig
++++ Makefile
+@@ -0,0 +1,10 @@
++all: release/protracker
++
++release/protracker: src/*.c src/gfx/*.c
++	${CC} ${CFLAGS} src/*.c src/gfx/*.c -o $@
++
++install: release/protracker
++	install release/protracker ${PREFIX}/bin
++
++clean:
++	rm release/protracker
