@@ -1,4 +1,7 @@
-A portable ProTracker 2 (v2.3D) clone written in C using SDL 2.
+A portable ProTracker 2 (v2.3D) clone written in C using SDL 2. Aims to
+be a highly accurate clone of the classic ProTracker 2.3D software for
+Amiga. Has additional audio filters and audio mixer improvements to
+make it sound close to a real Amiga computer.
 
 This clone is meant for computers with a modern GPU and CPU (from about
 2008 or later recommended). It's also designed for 60Hz monitor refresh
