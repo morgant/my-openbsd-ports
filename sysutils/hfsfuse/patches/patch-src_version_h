@@ -1,8 +1,0 @@
-$OpenBSD$
-
-Index: src/version.h
---- src/version.h.orig
-+++ src/version.h
-@@ -1 +1 @@
--#define HFSFUSE_VERSION_STRING 0.113-8e09fb6
-+#define HFSFUSE_VERSION_STRING "0.113-8e09fb6"
