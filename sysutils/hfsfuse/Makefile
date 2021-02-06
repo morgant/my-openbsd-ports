@@ -13,13 +13,16 @@ PERMIT_PACKAGE =	Yes
 
 WANTLIB =	c fuse pthread utf8proc
 
-MASTER_SITES =	https://github.com/0x09/hfsfuse/releases/download/$V/
+MASTER_SITES =	https://github.com/0x09/hfsfuse/releases/download/${V}/
 
 LIB_DEPENDS =	www/netsurf/libutf8proc
 
-USE_GMAKE =		Yes
+MAKE_FLAGS =	WITH_UBLIO=none WITH_UTF8PROC=system
+
+USE_GMAKE =	Yes
+
 CONFIGURE_STYLE =	none
-MAKE_FLAGS =		WITH_UBLIO=none WITH_UTF8PROC=system
-NO_TEST =		Yes
+
+NO_TEST =	Yes
 
 .include <bsd.port.mk>
