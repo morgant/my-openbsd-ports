@@ -1,0 +1,277 @@
+Index: common/profile-sync-daemon.in
+--- common/profile-sync-daemon.in.orig
++++ common/profile-sync-daemon.in
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/usr/bin/env bash
+ 
+ #
+ # Profile-sync-daemon by graysky <graysky AT archlinux DOT us>
+@@ -30,14 +30,14 @@ VERS="@VERSION@"
+ 
+ user=$(id -un)
+ HOME="$(getent passwd "$user" | cut -d: -f6)"
++TMPDIR="${TMPDIR:-/tmp}"
+ XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+ XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+ PSDCONFDIR="$XDG_CONFIG_HOME/psd"
+ PSDCONF="$PSDCONFDIR/psd.conf"
+-SHAREDIR="/usr/share/psd"
+-VOLATILE="$XDG_RUNTIME_DIR/psd"
+-PID_FILE="$XDG_RUNTIME_DIR/psd.pid"
++SHAREDIR="@SHAREDIR@"
+ 
++
+ if [[ ! -d "$SHAREDIR" ]]; then
+   echo -e " ${RED}ERROR:${NRM}${BLD} Missing ${BLU}$SHAREDIR${NRM}${BLD} - reinstall the package to use profile-sync-daemon.${NRM}"
+   exit 1
+@@ -53,11 +53,31 @@ if [[ $EUID -eq 0 ]]; then
+   exit 1
+ fi
+ 
+-if [[ ! -d "$XDG_RUNTIME_DIR" ]]; then
++# Create an XDG_RUNTIME_DIR if not given one (i.e. running without DE)
++# See https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
++if [[ -z "$XDG_RUNTIME_DIR" ]]; then
++  XDG_RUNTIME_DIR="${TMPDIR}/runtime-${user}"
++  echo -e " ${RED}WARNING:${NRM}${BLD} XDG_RUNTIME_DIR not set, defaulting to '${XDG_RUNTIME_DIR}'.${NRM}"
++  if [[ ! -d "$XDG_RUNTIME_DIR" ]] && ! mkdir "$XDG_RUNTIME_DIR"; then
++    echo -e " ${RED}ERROR:${NRM}${BLD} Unable to create runtime directory '${XDG_RUNTIME_DIR}'.${NRM}"
++    exit 1
++  fi
++  if ! chown "${user}" "${XDG_RUNTIME_DIR}"; then
++    echo -e " ${RED}ERROR:${NRM}${BLD} Unable to make user '${user}' owner of runtime directory '${XDG_RUNTIME_DIR}'.${NRM}"
++    exit 1
++  fi
++  if ! chmod 0700 "${XDG_RUNTIME_DIR}"; then
++    echo -e " ${RED}ERROR:${NRM}${BLD} Uname to make runtime directory '${XDG_RUNTIME_DIR}' only accessible to user '$user'.${NRM}"
++    exit 1
++  fi
++elif [[ ! -d "$XDG_RUNTIME_DIR" ]]; then
+   echo -e " ${RED}ERROR:${NRM}${BLD} Cannot find XDG_RUNTIME_DIR which should be set by systemd.${NRM}"
+   exit 1
+ fi
+ 
++VOLATILE="$XDG_RUNTIME_DIR/psd"
++PID_FILE="$XDG_RUNTIME_DIR/psd.pid"
++
+ # Setup check for config file
+ if [[ -f "$PSDCONF" ]]; then
+   if [[ ! -f "$PID_FILE" ]]; then
+@@ -78,7 +98,7 @@ elif [[ -d "$HOME/.psd" ]]; then
+   # first check to see if a legacy ~/.psd is present and then move it to the
+   # new location
+   mkdir -p "$PSDCONFDIR"
+-  rsync -aX "$HOME/.psd/" "$PSDCONFDIR/"
++  rsync -a "$HOME/.psd/" "$PSDCONFDIR/"
+   rm -rf "$HOME/.psd"
+   echo " The use of $HOME/.psd is deprecated. Existing config has been moved to $PSDCONFDIR"
+   # source it again retaining any user options
+@@ -125,7 +145,7 @@ fi
+ 
+ # scope to sync defined in BROWSERS array or from list of supported browsers
+ if [[ -z "$BROWSERS" ]]; then
+-  mapfile -t BROWSERS < <(find "$SHAREDIR/browsers" -type f -printf "%f\n")
++  mapfile -t BROWSERS < <(find "$SHAREDIR/browsers" -type f -exec basename {} \;)
+ else
+   if ! declare -p BROWSERS | grep -q 'declare -a'; then
+     # did not setup as array so redefine it here
+@@ -202,7 +222,7 @@ dep_check() {
+     echo -e " ${BLD}I require rsync but it's not installed. ${RED}Aborting!${NRM}"
+     exit 1
+   fi
+-  if ! command -v modinfo >/dev/null 2>&1; then
++  if [[ $OLFS -eq 1 ]] && ! command -v modinfo >/dev/null 2>&1; then
+     echo -e " ${BLD}I require modinfo but it's not installed. ${RED}Aborting!${NRM}" >&2
+     exit 1
+   fi
+@@ -286,7 +306,7 @@ ungraceful_state_check() {
+           exit 1
+         else
+           echo "Ungraceful state detected for $DIR so fixing"
+-          unlink "$DIR"
++          rm "${DIR%/}"
+           # refuse to start browser while recovery
+           ln -s /dev/null "$DIR"
+         fi
+@@ -294,8 +314,13 @@ ungraceful_state_check() {
+ 
+       if [[ -d "$BACKUP" ]]; then
+         if [[ -d $DIR ]]; then
+-          echo "Unexpected state detected: we have $BACKUP, but $DIR already exists. Trying move $DIR to $DIR" "$DIR-old-profile-$NOW"
+-          mv --no-target-directory "$DIR" "$DIR-old-profile-$NOW"
++          echo "Unexpected state detected: we have $BACKUP, but $DIR already exists. Trying move $DIR to $DIR-old-profile-$NOW"
++          if [[ ! -e "$DIR-old-profile-$NOW" ]]; then
++            mv "$DIR" "$DIR-old-profile-$NOW"
++          else
++            echo -e " ${RED}Error: ${NRM}${BLD}Unable to move $DIR to $DIR-old-profile-$NOW because destination already exists.${NRM}"
++            exit 1
++          fi
+         fi
+ 
+         if [[ -d "$BACK_OVFS" ]]; then
+@@ -326,9 +351,18 @@ ungraceful_state_check() {
+           # at all which can be treated the same way
+ 
+           if [[ $CRRE -eq 1 ]]; then
+-            cp -a --reflink=auto "$BACKUP" "$BACKUP-crashrecovery-$NOW"
+-            unlink "$DIR"
+-            mv --no-target-directory "$BACKUP" "$DIR"
++            if [[ "$(uname -s)" =~ BSD ]]; then
++              cp -a "$BACKUP" "$BACKUP-crashrecovery-$NOW"
++            else
++              cp -a --reflink=auto "$BACKUP" "$BACKUP-crashrecovery-$NOW"
++            fi
++            rm "${DIR%/}"
++            if [[ ! -e "$DIR" ]]; then
++              mv "$BACKUP" "$DIR"
++            else
++              echo -e " ${RED}Error: ${NRM}${BLD}Unable to move $BACKUP to $DIR because the destination already exists.${NRM}"
++              exit 1
++            fi
+           fi
+         fi
+       fi
+@@ -477,23 +511,32 @@ do_sync_for() {
+     # make tmpfs container
+     if [[ -d "$DIR" ]]; then
+       # retain permissions on sync target
+-      PREFIXP=$(stat -c %a "$DIR")
+-      [[ -r "$TMP" ]] || install -dm"$PREFIXP" --owner="$user" --group="$group" "$TMP"
++      if [[ "$(uname -s)" =~ BSD ]]; then
++        PREFIXP=$(stat -f %OLp "$DIR")
++      else
++        PREFIXP=$(stat -c %a "$DIR")
++      fi
++      [[ -r "$TMP" ]] || install -dm"$PREFIXP" -o "$user" -g "$group" "$TMP"
+ 
+       if [[ $OLFS -eq 1 ]]; then
+         if [[ $OLFSVER -eq 23 ]]; then
+-          [[ -r "$UPPER" ]] || install -dm"$PREFIXP" --owner="$user" --group="$group" "$UPPER"
+-          [[ -r "$WORK" ]] || install -dm"$PREFIXP" --owner="$user" --group="$group" "$WORK"
++          [[ -r "$UPPER" ]] || install -dm"$PREFIXP" -o "$user" -g "$group" "$UPPER"
++          [[ -r "$WORK" ]] || install -dm"$PREFIXP" -o "$user" -g "$group" "$WORK"
+         elif [[ $OLFSVER -eq 22 ]]; then
+-          [[ -r "$UPPER" ]] || install -dm"$PREFIXP" --owner="$user" --group="$group" "$UPPER"
++          [[ -r "$UPPER" ]] || install -dm"$PREFIXP" -o "$user" -g "$group" "$UPPER"
+         fi
+       fi
+ 
+       # backup target and link to tmpfs container
+       if [[ $(readlink "$DIR") != "$TMP" ]]; then
+-        mv --no-target-directory "$DIR" "$BACKUP"
+-        # refuse to start browser while initial sync
+-        ln -s /dev/null "$DIR"
++        if [[ ! -e "$BACKUP" ]]; then
++          mv "$DIR" "$BACKUP"
++          # refuse to start browser while initial sync
++          ln -s /dev/null "$DIR"
++        else
++          echo -e " ${RED}Error: ${NRM}${BLD}Unable to move $DIR to $BACKUP because destination already exists.${NRM}"
++          exit 1
++        fi
+       fi
+ 
+       # sync the tmpfs targets to the disc
+@@ -502,7 +545,7 @@ do_sync_for() {
+         if [[ $OLFS -eq 1 ]]; then
+           rsync -aX --delete-after --inplace --no-whole-file --exclude .flagged "$DIR/" "$BACK_OVFS/"
+         else
+-          rsync -aX --delete-after --inplace --no-whole-file --exclude .flagged "$DIR/" "$BACKUP/"
++          rsync -a --delete-after --inplace --no-whole-file --exclude .flagged "$DIR/" "$BACKUP/"
+         fi
+       else
+         # initial sync
+@@ -514,11 +557,11 @@ do_sync_for() {
+           fi
+         else
+           # keep user from launching browser while rsync is active
+-          rsync -aX --inplace --no-whole-file "$BACKUP/" "$TMP"
++          rsync -a --inplace --no-whole-file "$BACKUP/" "$TMP"
+         fi
+ 
+         # now browser can start
+-        [[ $(readlink "$DIR") = "/dev/null" ]] && unlink "$DIR"
++        [[ $(readlink "$DIR") = "/dev/null" ]] && rm "${DIR%/}"
+         ln -s "$TMP" "$DIR"
+         chown -h "$user":"$group" "$DIR"
+         touch "$DIR/.flagged"
+@@ -599,12 +642,19 @@ do_unsync() {
+       WORK="$VOLATILE/.$user-$browser${suffix}"
+       # check if user has browser profile
+       if [[ -h "$DIR" ]]; then
+-        unlink "$DIR"
++        rm "${DIR%/}"
+         # this assumes that the backup is always updated so
+         # be sure to invoke a sync before an unsync
+         #
+         # restore original dirtree
+-        [[ -d "$BACKUP" ]] && mv --no-target-directory "$BACKUP" "$DIR"
++        if [[ -d "$BACKUP" ]]; then
++          if [[ ! -e "$DIR" ]]; then
++            mv "$BACKUP" "$DIR"
++          else
++            echo -e " ${RED}Error: ${NRM}${BLD}Unable to move $BACKUP to $DIR because destination already exists.${NRM}"
++            exit 1
++          fi
++        fi
+         if [[ $OLFS -eq 1 ]] && mountpoint -q "$TMP"; then
+           rsync -aX --delete-after --inplace --no-whole-file --exclude .flagged "$BACK_OVFS/" "$DIR/"
+           sudo psd-overlay-helper -d "$TMP" -w "$WORK" mountdown && rm -rf "$TMP" "$UPPER"
+@@ -624,7 +674,7 @@ do_unsync() {
+ parse() {
+   psd_state=$(systemctl --user is-active psd)
+   resync_state=$(systemctl --user is-active psd-resync.timer)
+-  psd_suspend_sync_state=$(pgrep -cf "psd-suspend-sync")
++  psd_suspend_sync_state=$(pgrep -f "psd-suspend-sync" | wc -l | tr -d ' ')
+   if [[ "$psd_suspend_sync_state" != 0 ]]; then
+     psss_state="enabled"
+   else
+@@ -669,7 +719,11 @@ parse() {
+         done < <(find "${DIR%/*}" -type d -name '*crashrecovery*' -print0 | sort -r -z)
+ 
+         # get permissions on profile dir and be smart about it since symlinks are all 777
+-        [[ -f $PID_FILE ]] && TRUEP=$(stat -c %a "$BACKUP") || TRUEP=$(stat -c %a "$DIR")
++        if [[ "$(uname -s)" =~ BSD ]]; then
++          [[ -d $PID_FILE ]] && TRUEP=$(stat -f %OLp "$BACKUP") || TRUEP=$(stat -f %OLp "$DIR")
++        else
++          [[ -f $PID_FILE ]] && TRUEP=$(stat -c %a "$BACKUP") || TRUEP=$(stat -c %a "$DIR")
++        fi
+         # since $XDG_RUNTIME_DIR is 700 by default so pass on by
+         if [[ "$VOLATILE" = "$XDG_RUNTIME_DIR" ]]; then
+           warn=
+@@ -678,7 +732,11 @@ parse() {
+           [[ $TRUEP -ne 700 ]] && warn=1
+         fi
+         # profile dir size
+-        psize=$(du -Dh --max-depth=0 "$DIR" 2>/dev/null | awk '{ print $1 }')
++        if [[ "$(uname -s)" =~ BSD ]]; then
++          psize=$(du -Hhd 0 "$DIR" 2>/dev/null | awk '{ print $1 }')
++        else
++          psize=$(du -Dh --max-depth=0 "$DIR" 2>/dev/null | awk '{ print $1 }')
++        fi
+         echo -en " ${BLD}browser/psname:"
+         echo -e "$(tput cr)$(tput cuf 17) $browser/$PSNAME${NRM}"
+         echo -en " ${BLD}owner/group id:"
+@@ -710,7 +768,11 @@ parse() {
+         else
+           echo -e "$(tput cr)$(tput cuf 17) ${RED}${#CRASHArr[@]}${NRM}${BLD} <- delete with the c option${NRM}"
+           for backup in "${CRASHArr[@]}"; do
+-            psize=$(du -Dh --max-depth=0 "$backup" 2>/dev/null | awk '{ print $1 }')
++            if [[ "$(uname -s)" =~ BSD ]]; then
++              psize=$(du -Hhd 0 "$backup" 2>/dev/null | awk '{ print $1 }')
++            else
++              psize=$(du -Dh --max-depth=0 "$backup" 2>/dev/null | awk '{ print $1 }')
++            fi
+             echo -en " ${BLD} dir path/size:"
+             echo -e "$(tput cr)$(tput cuf 17) ${BLU}$backup ${NRM}${BLD}($psize)${NRM}"
+           done
+@@ -730,7 +792,7 @@ take_inhibit_lock() {
+ }
+ 
+ release_inhibit_lock() {
+-  [[ "$(pgrep -cf "psd-suspend-sync")" != 0 ]] && pkill -f psd-suspend-sync
++  [[ "$(pgrep -f "psd-suspend-sync" | wc -l | tr -d ' ')" != 0 ]] && pkill -f psd-suspend-sync
+ }
+ 
+ case "$1" in

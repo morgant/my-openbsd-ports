@@ -1,0 +1,6 @@
+Profile-sync-daemon (psd) is a tiny pseudo-daemon designed to manage
+browser profile/profiles in tmpfs and to periodically sync back to the
+physical disc (HDD/SSD). This is accomplished by an innovative use of
+rsync to maintain synchronization between a tmpfs copy and media-bound
+backup of the browser profile/profiles. Additionally, psd features
+several crash-recovery features.
