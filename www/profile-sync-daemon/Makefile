@@ -14,14 +14,14 @@ MAINTAINER =	Morgan Aldridge <morgant@makkintosshu.com>
 # MIT
 PERMIT_PACKAGE =	Yes
 
-BUILD_DEPENDS =		net/rsync
 RUN_DEPENDS =		shells/bash net/rsync x11/xdg-user-dirs-gtk x11/dbus
-
-FAKE_FLAGS =		DESTDIR=
 
 USE_GMAKE =		Yes
 CONFIGURE_STYLE =	none
 NO_BUILD =		Yes
+
+FAKE_FLAGS =		DESTDIR=
+
 NO_TEST =		Yes
 
 pre-configure:

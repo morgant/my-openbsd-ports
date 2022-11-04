@@ -1,7 +1,7 @@
 Index: Makefile
 --- Makefile.orig
 +++ Makefile
-@@ -2,19 +2,18 @@ VERSION = 6.48
+@@ -2,32 +2,31 @@ VERSION = 6.48
  PN = profile-sync-daemon
  
  PREFIX ?= /usr
@@ -24,9 +24,9 @@ Index: Makefile
 +INSTALL_SCRIPT = $(INSTALL) -p -m755
 +INSTALL_DATA = $(INSTALL) -p -m644
  INSTALL_DIR = $(INSTALL) -d
- RSYNC = rsync -a
+-RSYNC = rsync -a
  Q = @
-@@ -22,12 +21,13 @@ Q = @
+ 
  common/$(PN): common/$(PN).in
  	$(Q)echo -e '\033[1;32mSetting version\033[0m'
  	$(Q)$(SED) 's/@VERSION@/'$(VERSION)'/' common/$(PN).in > common/$(PN)
@@ -41,7 +41,7 @@ Index: Makefile
  	$(INSTALL_PROGRAM) common/psd-suspend-sync "$(DESTDIR)$(BINDIR)/psd-suspend-sync"
  	ln -sf $(PN) "$(DESTDIR)$(BINDIR)/psd"
  	$(INSTALL_DIR) "$(DESTDIR)$(ZSHDIR)"
-@@ -42,23 +42,14 @@ install-man:
+@@ -42,23 +41,14 @@ install-man:
  	$(Q)echo -e '\033[1;32mInstalling manpage...\033[0m'
  	$(INSTALL_DIR) "$(DESTDIR)$(MANDIR)"
  	$(INSTALL_DATA) doc/psd.1 "$(DESTDIR)$(MANDIR)/psd.1"
@@ -66,7 +66,7 @@ Index: Makefile
  	$(RM) "$(DESTDIR)$(BINDIR)/psd-suspend-sync"
  	$(RM) "$(DESTDIR)$(SHAREDIR)/psd.conf"
  	$(RM) -rf "$(DESTDIR)$(SHAREDIR)/browsers"
-@@ -68,16 +59,10 @@ uninstall-bin:
+@@ -68,16 +58,10 @@ uninstall-bin:
  uninstall-man:
  	$(RM) -f "$(DESTDIR)$(MANDIR)/$(PN).1"
  	$(RM) -f "$(DESTDIR)$(MANDIR)/psd.1"

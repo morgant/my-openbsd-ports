@@ -30,11 +30,15 @@ profile (usually in ~/.cache), so you may want to move those directories to
 an MFS filesystem to benefit from reduced HDD/SSD wear. ${PKGSTEM} does not
 automate backup or sync of browser caches outside of profiles.
 
-Automation:
+Setup and Automation:
+
+* After installing, execute `profile-sync-daemon parse` twice (the first
+run will create your config file, the second will confirm your
+configuration and browser(s) profile(s) found.
 
 * It is suggested to run `profile-sync-daemon sync` in your ~/.xsession to
 ensure that your browser(s) profile(s) are synced to your MFS filesystem
-prior to launching your browser(s).
+upon login and prior to launching your browser(s).
 
 * For periodic syncing, add a `profile-sync-daemon sync` line to your
 user's crontab(5).
