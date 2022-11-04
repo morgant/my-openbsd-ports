@@ -33,6 +33,7 @@ pre-configure:
 	rm ${WRKSRC}/common/browsers/chromium-dev
 
 post-install:
-	sed -i "s,${PREFIX}/share/psd,${TRUEPREFIX}/share/psd," ${PREFIX}/bin/profile-sync-daemon
+	sed -i "s,${PREFIX}/share/psd,${TRUEPREFIX}/share/psd," \
+		${PREFIX}/bin/profile-sync-daemon
 
 .include <bsd.port.mk>

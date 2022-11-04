@@ -3,6 +3,7 @@ bin/psd
 bin/psd-suspend-sync
 @man man/man1/profile-sync-daemon.1
 @man man/man1/psd.1
+share/doc/pkg-readmes/${PKGSTEM}
 share/psd/
 share/psd/browsers/
 share/psd/browsers/chromium
