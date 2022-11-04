@@ -1,0 +1,40 @@
++-------------------------------------------------------------------------------
+| Running ${PKGSTEM} on OpenBSD
++-------------------------------------------------------------------------------
+
+IMPORTANT: Back up your browser(s) profile(s) prior to running ${PKGSTEM}!
+
+As of OpenBSD 6.0, tmpfs is not enabled by default, so manual configuration of
+an MFS filesystem is required for the reduced HDD/SSD wear and increased
+performance benefits of ${PKGSTEM}.
+
+MFS filesystem considerations:
+
+* You must have enough extra unused physical memory to contain your browser(s)
+profile(s).
+
+* You must mount an MFS filesystem that is large enough to contain your
+browser(s) profile(s) (see mount_mfs(8)). This may require tweaking
+login.conf(5).
+
+* It is suggested that you move /tmp to an MFS filesystem as ${PKGSTEM} will
+default to a subdirectory in /tmp if the XDG_RUNTIME_DIR environment variable
+is not set (the case when using a window manager without a full desktop
+environment). See fstab(5).
+
+* If you are using a full desktop environment, you must confirm that
+XDG_RUNTIME_DIR is also in /tmp.
+
+* As noted in ${PKGSTEM}(1), some browsers store their cache outside of the
+profile (usually in ~/.cache), so you may want to move those directories to
+an MFS filesystem to benefit from reduced HDD/SSD wear. ${PKGSTEM} does not
+automate backup or sync of browser caches outside of profiles.
+
+Automation:
+
+* It is suggested to run `profile-sync-daemon sync` in your ~/.xsession to
+ensure that your browser(s) profile(s) are synced to your MFS filesystem
+prior to launching your browser(s).
+
+* For periodic syncing, add a `profile-sync-daemon sync` line to your
+user's crontab(5).
