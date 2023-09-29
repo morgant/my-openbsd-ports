@@ -1,0 +1,45 @@
+@bin bin/newt64
+include/newt64/
+include/newt64/NewtBC.h
+include/newt64/NewtConf.h.in
+include/newt64/NewtCore.h
+include/newt64/NewtEnv.h
+include/newt64/NewtErrs.h
+include/newt64/NewtFile.h
+include/newt64/NewtFns.h
+include/newt64/NewtGC.h
+include/newt64/NewtIO.h
+include/newt64/NewtIconv.h
+include/newt64/NewtLib.h
+include/newt64/NewtMem.h
+include/newt64/NewtNSOF.h
+include/newt64/NewtObj.h
+include/newt64/NewtParser.h
+include/newt64/NewtPkg.h
+include/newt64/NewtPrint.h
+include/newt64/NewtStr.h
+include/newt64/NewtType.h
+include/newt64/NewtVM.h
+include/newt64/Newton/
+include/newt64/Newton/Newton.h
+include/newt64/Newton/NewtonExceptions.h
+include/newt64/Newton/NewtonMemory.h
+include/newt64/Newton/Objects.h
+@comment include/newt64/VC6/
+@comment include/newt64/VC6/NewtConf.h
+@comment include/newt64/VC6/config.h
+@comment include/newt64/VC6/dlfcn.h
+@comment include/newt64/VC6/endian.h
+@comment include/newt64/VC6/iconv.h
+@comment include/newt64/VC6/stdbool.h
+@comment include/newt64/VC6/stdint.h
+@comment include/newt64/VC6/unistd.h
+include/newt64/darwin/
+include/newt64/darwin/NewtConf.h
+include/newt64/darwin/config.h
+include/newt64/platform.h
+@comment include/newt64/win/
+@comment include/newt64/win/NewtConf.h
+@comment include/newt64/win/config.h
+@comment include/newt64/win/dlfcn.h
+@static-lib lib/libnewt64.a

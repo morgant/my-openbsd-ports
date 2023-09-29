@@ -1,0 +1,10 @@
+${PKGSTEM} is a modified version of Makoto Nukui's portable NEWT/0
+NewtonScript implementation. It has been updated by Matthias Melcher
+with 64-bit support and additional functionality utilized by the
+Einstein Newton OS 2.x emulator.
+
+NewtonScript is an object-oriented programming language developed by
+Walter Smith at Apple for the Newton OS running on their MessagePad &
+eMate hardware. It borrows concepts from the Smalltalk, LISP, and Self
+programming languages with special consideration for a low memory
+footprint (esp. differential inheritance).
