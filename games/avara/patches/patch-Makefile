@@ -1,0 +1,43 @@
+Index: Makefile
+--- Makefile.orig
++++ Makefile
+@@ -3,6 +3,11 @@
+ CC = clang
+ CXX = clang++
+ 
++INSTALL ?= install
++PREFIX ?= /usr/local
++BINDIR ?= $(PREFIX)/bin
++DATADIR ?= $(PREFIX)/share/Avara
++
+ GIT_HASH := $(shell git describe --always --dirty)
+ GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
+ 
+@@ -45,9 +50,13 @@ else ifneq (,$(findstring NT-10.0,$(UNAME)))
+ 	CFLAGS +=  -DMINIUPNP_EXPORTS -D_WIN32_WINNT=0x501
+ 	POST_PROCESS ?= ls -lh
+ else
+-	# Linux
++	# Linux-only; BSDs don't need libdl
++ifeq (,$(findstring BSD,$(UNAME)))
++	LDFLAGS += -ldl
++endif
++	# Linux & BSDs
+ 	PKG_CONFIG ?= pkg-config
+-	LDFLAGS += -lstdc++ -lm -lpthread -ldl
++	LDFLAGS += -lstdc++ -lm -lpthread
+ 	LDFLAGS += $(shell ${PKG_CONFIG} --libs-only-l glu)
+ 	LDFLAGS += $(shell ${PKG_CONFIG} --libs-only-l sdl2)
+ 	CPPFLAGS += $(shell ${PKG_CONFIG} --cflags-only-I directfb)
+@@ -161,6 +170,11 @@ build-link: $(BUILD_DIR)/Avara
+ 	else \
+ 		echo "build is not a link so not linking build -> $(BUILD_DIR)" ; \
+ 	fi
++
++install: avara
++	$(INSTALL) -d $(DATADIR) $(DATADIR)/rsrc $(DATADIR)/levels
++	$(INSTALL) $(BUILD_DIR)/Avara $(DATADIR)
++	rsync -av $(BUILD_DIR)/levels $(BUILD_DIR)/rsrc $(DATADIR)
+ 
+ clean:
+ 	$(RM) -r $(BUILD_DIR)
