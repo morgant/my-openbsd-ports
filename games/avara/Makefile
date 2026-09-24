@@ -101,4 +101,7 @@ ALL_TARGET =		avara
 #INSTALL_TARGET =	???
 #TEST_TARGET =		???
 
+post-install:
+	${INSTALL_SCRIPT} ${FILESDIR}/avara.sh ${PREFIX}/bin/avara
+
 .include <bsd.port.mk>
