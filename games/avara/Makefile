@@ -1,16 +1,10 @@
-# Reasons why the port/package shouldn't be built
-#
-#ONLY_FOR_ARCHS =	???
-#NOT_FOR_ARCHS =	???
-#COMES_WITH =		???
-#BROKEN =		reason
-
 COMMENT =	remote-controlled bipedal tanks 3D networked action FPS
 
 V =		0.7.1
 GH_ACCOUNT =	avaraline
 GH_PROJECT =	Avara
 GH_TAGNAME =	${V}
+PKGNAME=avara-${V}
 
 #
 # On source code hosting platforms use static tarballs over generated ones.
@@ -35,23 +29,13 @@ GH_TAGNAME =	${V}
 # must be included and listed first.
 CATEGORIES =	games
 
-# https preferred for HOMEPAGE
 HOMEPAGE =	https://github.com/avaraline/Avara
 
-# person who is responsible for the port. Use a complete email address with
-# a real name, e.g., "MAINTAINER = John Doe <doe57@machine.somewhere.org>".
-# If you maintain several ports, use the same line each time.
-# If you no longer use the port, or are unwilling/unable to handle issues
-# in a timely manner, *leave the field blank*.
-# Default value is ports@openbsd.org, no need to fill in
-MAINTAINER =		Morgan Aldridge <morgant@makkintosshu.com>
+MAINTAINER =	Morgan Aldridge <morgant@makkintosshu.com>
 
 # MIT, zlib, BSD 3-clause, Happy Bunny (MIT), Boost Software
 PERMIT_PACKAGE =	Yes
 
-# If pledge is used, annotate with `uses pledge()' in a comment
-
-# "make port-lib-depends-check" can help
 WANTLIB += ${COMPILER_LIBCXX} GL GLU SDL2 c m
 
 #SITES =		???
@@ -61,7 +45,6 @@ COMPILER =		base-clang ports-gcc
 
 # Dependencies
 BUILD_DEPENDS =		net/rsync
-#RUN_DEPENDS =		???
 LIB_DEPENDS =		devel/sdl2 audio/sdl2-audiolib devel/sdl2-net
 #TEST_DEPENDS =		???
 
@@ -80,15 +63,6 @@ CONFIGURE_STYLE =	none
 #DEBUG_CONFIGURE_ARGS =	???
 #DEBUG_PACKAGES = ${BUILD_PACKAGES}
 
-# Is the build automagic or is it interactive
-#
-#IS_INTERACTIVE =		Yes
-#TEST_IS_INTERACTIVE =		Yes
-
-# Generally, DON'T set anything to No if it's not needed.
-# The time gained is not worth it.
-#
-#NO_BUILD =		Yes
 #NO_TEST =		Yes
 
 # Overrides for default values

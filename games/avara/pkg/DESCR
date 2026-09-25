@@ -1,6 +1,7 @@
 Avara is a cult-classic three-dimensional networked action FPS with remote-
-controlled bipedal tanks.
+controlled bipedal tanks. The game was originally developed in the early 1990s
+for Apple Macintosh by Juri Munkii and published by Ambrosia Software. This
+port uses SDL2 and OpenGL to replace legacy APIs and is intended to run at
+60fps on modern hardware.
 
-The game was originally developed in the early 1990s for Apple Macintosh by
-Juri Munkii and published by Ambrosia Software. This port uses SDL2 and OpenGL
-to replace legacy APIs and is intended to run at 60fps on modern OSes.
+See the wiki for documentation: <https://github.com/avaraline/Avara/wiki>
